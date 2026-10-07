@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>v3D studio</title>
+<style>
+:root{--bg:#0b1220;--panel:#111a2b;--line:#26334a;--text:#e8eef8;--muted:#9fb0c9;--accent:#3b82f6}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+#app{display:grid;grid-template-columns:360px 1fr;height:100vh}
+#side{overflow:auto;border-right:1px solid var(--line);background:var(--panel);padding:14px}
+h1{font-size:18px;margin:0 0 4px}h2{font-size:13px;margin:18px 0 8px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:5px}
+.card{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:#0e1626}
+label{display:block;font-size:11px;color:var(--muted);margin:6px 0 2px}
+input,select{width:100%;background:#0a1120;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:7px;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{background:var(--accent);border:0;color:#fff;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer}
+button.ghost{background:#1c2740}button.small{padding:5px 7px;font-size:11px}
+#stage{position:relative}#c{width:100%;height:100%;display:block}
+#topright{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:5}
+#legend{position:absolute;top:10px;left:10px;background:rgba(10,17,32,.86);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px;z-index:5;min-width:210px}
+#legend div{display:flex;align-items:center;gap:7px;margin:3px 0}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+#hud{position:absolute;bottom:10px;left:10px;right:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;z-index:5}
+.stat{background:rgba(10,17,32,.88);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-size:15px}.stat span{font-size:10px;color:var(--muted)}
+#toast{position:fixed;bottom:18px;right:18px;background:#123058;border:1px solid #3b82f6;color:#fff;padding:9px 12px;border-radius:8px;opacity:0;transition:.25s;z-index:99}
+#help{position:absolute;bottom:76px;left:10px;font-size:11px;color:var(--muted);background:rgba(10,17,32,.8);padding:6px 9px;border-radius:8px;z-index:5}
+@media(max-width:900px){#app{grid-template-columns:1fr;grid-template-rows:46vh 1fr}#side{border-right:0;border-bottom:1px solid var(--line)}#hud{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="side">
+<h1>▶️ v3D studio</h1>
+<div style="font-size:11px;color:var(--muted)">コンテナ型蓄電システム 3D仮想設計ツール</div>
+
+<h2>コンテナ</h2>
+<div class="card">
+<label>コンテナサイズ</label>
+<select id="containerType">
+<option value="10">10ft — 2991 × 2438 × 2591 mm</option>
+<option value="12">12ft — 3600 × 2438 × 2591 mm</option>
+<option value="20" selected>20ft — 6058 × 2438 × 2591 mm</option>
+<option value="40">40ft — 12192 × 2438 × 2591 mm</option>
+</select>
+<div class="grid3">
+<div><label>幅 mm</label><input id="cw" type="number" value="2438"></div>
+<div><label>奥行 mm</label><input id="cl" type="number" value="6058"></div>
+<div><label>高さ mm</label><input id="ch" type="number" value="2591"></div>
+</div>
+<div class="grid">
+<div><label>外装色</label><input id="shellColor" type="color" value="#6b7280"></div>
+<div><label>外装透明度 %</label><input id="shellOpacity" type="number" min="5" max="95" value="25"></div>
+</div>
+<div class="grid">
+<div><label>基礎色</label><input id="baseColor" type="color" value="#374151"></div>
+<div><label>基礎高さ mm</label><input id="baseH" type="number" value="200"></div>
+</div>
+<div><label>筐体・配管重量 kg</label><input id="shellWeight" type="number" value="2200"></div>
+</div>
+
+<h2>項目1：バッテリー</h2>
+<div class="card">
+<div class="grid">
+<div><label>パック色</label><input id="cellColor" type="color" value="#2563eb"></div>
+<div><label>セル容量 Ah</label><input id="cellAh" type="number" value="280"></div>
+</div>
+<div class="grid3">
+<div><label>パック幅</label><input id="packW" type="number" value="500"></div>
+<div><label>パック奥行</label><input id="packD" type="number" value="700"></div>
+<div><label>パック高さ</label><input id="packH" type="number" value="180"></div>
+</div>
+<div class="grid3">
+<div><label>1パック内セル数</label><input id="cellsPerPack" type="number" value="16"></div>
+<div><label>1ラック内パック数</label><input id="packsPerRack" type="number" value="10"></div>
+<div><label>パック重量 kg</label><input id="packWeight" type="number" value="95"></div>
+</div>
+<div class="grid3">
+<div><label>ラック配置 縦</label><input id="rackRows" type="number" value="2"></div>
+<div><label>ラック配置 横</label><input id="rackCols" type="number" value="4"></div>
+<div><label>ラック重量 kg</label><input id="rackWeight" type="number" value="180"></div>
+</div>
+<div style="font-size:10px;color:var(--muted);margin-top:6px">描画レベル：個別バッテリーパック</div>
+</div>
+
+<h2>電力変換設備</h2>
+<div class="card">
+<div class="grid"><div><label>PCS色</label><input id="pcsColor" type="color" value="#eab308"></div><div><label>PCS重量 kg</label><input id="pcsWeight" type="number" value="1200"></div></div>
+<div class="grid3"><div><label>PCS幅</label><input id="pcsW" type="number" value="800"></div><div><label>PCS奥行</label><input id="pcsD" type="number" value="800"></div><div><label>PCS高さ</label><input id="pcsH" type="number" value="2000"></div></div>
+</div>
+<div class="card">
+<div class="grid"><div><label>インバータ色</label><input id="invColor" type="color" value="#f97316"></div><div><label>インバータ重量 kg</label><input id="invWeight" type="number" value="450"></div></div>
+<div class="grid3"><div><label>インバータ幅</label><input id="invW" type="number" value="600"></div><div><label>インバータ奥行</label><input id="invD" type="number" value="700"></div><div><label>インバータ高さ</label><input id="invH" type="number" value="1600"></div></div>
+</div>
+
+<h2>補機・安全設備</h2>
+<div class="card">
+<div class="grid"><div><label>HVAC色</label><input id="hvacColor" type="color" value="#38bdf8"></div><div><label>HVAC重量 kg</label><input id="hvacWeight" type="number" value="350"></div></div>
+<div class="grid3"><div><label>HVAC幅</label><input id="hvacW" type="number" value="1000"></div><div><label>HVAC奥行</label><input id="hvacD" type="number" value="500"></div><div><label>HVAC高さ</label><input id="hvacH" type="number" value="1800"></div></div>
+</div>
+<div class="card">
+<div class="grid"><div><label>NOVEC色</label><input id="novecColor" type="color" value="#ef4444"></div><div><label>NOVEC重量 kg</label><input id="novecWeight" type="number" value="180"></div></div>
+<div class="grid3"><div><label>NOVEC幅</label><input id="novecW" type="number" value="600"></div><div><label>NOVEC奥行</label><input id="novecD" type="number" value="400"></div><div><label>NOVEC高さ</label><input id="novecH" type="number" value="1200"></div></div>
+</div>
+
+<h2>操作</h2>
+<div class="card">
+<button id="tempSave" class="ghost">一時保存</button>
+<button id="resetLayout" class="ghost">自動配置を再実行</button>
+<button id="clearSaved" class="ghost">保存データ削除</button>
+<div style="font-size:10px;color:var(--muted);margin-top:8px">すべての入力は自動上書き保存されます。</div>
+</div>
+</aside>
+
+<main id="stage">
+<canvas id="c"></canvas>
+<div id="topright">
+<button id="pdfBtn">PDF出力</button>
+<button id="codeBtn">コード生成</button>
+<button id="dlBtn">ダウンロード</button>
+<button id="shareBtn">共有</button>
+</div>
+<div id="legend">
+<div><b>3Dモデル構成</b></div>
+<div><span class="sw" style="background:#2563eb"></span>Battery Rack (LFP Pack)</div>
+<div><span class="sw" style="background:#38bdf8"></span>Liquid Cooling HVAC</div>
+<div><span class="sw" style="background:#eab308"></span>PCS / Power Inverter</div>
+<div><span class="sw" style="background:#94a3b8"></span>DC/AC Protection Panel</div>
+<div><span class="sw" style="background:#ef4444"></span>Fire Suppression (Novec)</div>
+</div>
+<div id="help">ドラッグ：視点回転／ホイール：ズーム／機器を長押し：移動、ダブルクリック：90°回転</div>
+<div id="hud">
+<div class="stat"><span>総定格蓄電容量</span><b id="mwh">—</b></div>
+<div class="stat"><span>システム総重量</span><b id="tw">—</b></div>
+<div class="stat"><span>推定軸重バランス F/R</span><b id="axle">—</b></div>
+<div class="stat"><span>通路クリアランス</span><b id="clear">—</b></div>
+</div>
+</main>
+</div>
+<div id="toast"></div>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const $=id=>document.getElementById(id);
+const fields=[...document.querySelectorAll('input,select')];
+const KEY='v3d-studio-v1';
+
+function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,1800)}
+function save(){const d={};fields.forEach(f=>d[f.id]=f.value);localStorage.setItem(KEY,JSON.stringify(d))}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');fields.forEach(f=>{if(d[f.id]!==undefined)f.value=d[f.id]})}catch(e){}}
+function tempSave(){save();toast('一時保存しました')}
+function exportData(){const d={};fields.forEach(f=>d[f.id]=f.value);return JSON.stringify(d,null,2)}
+function download(name,text,type='application/json'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()}
+
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1220);
+scene.fog=new THREE.Fog(0x0b1220,25000,90000);
+const camera=new THREE.PerspectiveCamera(45,1,1,200000);
+const renderer=new THREE.WebGLRenderer({canvas:$('c'),antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xbfd6ff,0x101828,1.1));
+const dl=new THREE.DirectionalLight(0xffffff,1.4);dl.position.set(9000,14000,9000);scene.add(dl);
+const grid=new THREE.GridHelper(40000,40,0x334155,0x1e293b);grid.position.y=-1;scene.add(grid);
+
+let root=new THREE.Group();scene.add(root);
+let movable=[];let selected=null;let drag=null;let pressTimer=null;let downPos=null;
+
+function box(w,h,d,color,opacity=1){const g=new THREE.BoxGeometry(w,h,d);const m=new THREE.MeshStandardMaterial({color,transparent:opacity<1,opacity,roughness:.55,metalness:.1});return new THREE.Mesh(g,m)}
+function label(text,pos){const cv=document.createElement('canvas');cv.width=512;cv.height=128;const x=cv.getContext('2d');x.fillStyle='rgba(8,15,28,.85)';x.fillRect(0,0,512,128);x.fillStyle='#e8eef8';x.font='bold 42px sans-serif';x.textAlign='center';x.fillText(text,256,78);const tx=new THREE.CanvasTexture(cv);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true}));sp.scale.set(1400,350,1);sp.position.copy(pos);return sp}
+
+function addMovable(mesh,name){mesh.userData={name,baseY:mesh.position.y};root.add(mesh);movable.push(mesh)}
+
+function rebuild(){
+ scene.remove(root);root=new THREE.Group();scene.add(root);movable=[];
+ const cw=+$('cw').value,cl=+$('cl').value,ch=+$('ch').value,bh=+$('baseH').value;
+ // foundation
+ const foundation=box(cw,bh,cl,$('baseColor').value);foundation.position.set(0,bh/2,0);root.add(foundation);
+ // shell
+ const shell=box(cw,ch,cl,$('shellColor').value,(+$('shellOpacity').value)/100);
+ shell.position.set(0,bh+ch/2,0);root.add(shell);
+ const edges=new THREE.LineSegments(new THREE.EdgesGeometry(shell.geometry),new THREE.LineBasicMaterial({color:0x93c5fd}));edges.position.copy(shell.position);root.add(edges);
+ const floorY=bh+10;
+ // battery racks: packs drawn individually
+ const pw=+$('packW').value,pd=+$('packD').value,ph=+$('packH').value,ppr=+$('packsPerRack').value,rr=+$('rackRows').value,rc=+$('rackCols').value;
+ const rackW=pw+60,rackD=pd+80,rackH=ph*ppr+80;
+ const batteryColor=$('cellColor').value;
+ let bx=-(rc*rackW+(rc-1)*200)/2;
+ for(let i=0;i<rc;i++){let bz=-(rr*rackD+(rr-1)*300)/2;
+  for(let j=0;j<rr;j++){
+   const rack=box(rackW,rackH,rackD,batteryColor,.18);rack.position.set(bx+rackW/2,floorY+rackH/2,bz+rackD/2);addMovable(rack,'Battery Rack');
+   for(let k=0;k<ppr;k++){const p=box(pw,ph,pd,batteryColor);p.position.set(rack.position.x,floorY+40+ph/2+k*(ph+8),rack.position.z);root.add(p)}
+   bz+=rackD+300}
+  bx+=rackW+200}
+ // PCS / inverter / HVAC / NOVEC
+ function equip(id,colorId,name){const w=+$(id+'W').value,d=+$(id+'D').value,h=+$(id+'H').value;const m=box(w,h,d,$(colorId).value);m.position.set(0,floorY+h/2,0);addMovable(m,name);return m}
+ const pcs=equip('pcs','pcsColor','PCS / Power Inverter');
+ const inv=equip('inv','invColor','DC/AC Protection Panel');
+ const hvac=equip('hvac','hvacColor','Liquid Cooling HVAC');
+ const novec=equip('novec','novecColor','Fire Suppression (Novec)');
+ // initial auto placement
+ const usableW=cw-200,usableD=cl-300;
+ const rightX=usableW/2-((+$('pcsW').value)/2+80);
+ pcs.position.x=rightX;pcs.position.z=-usableD/2+((+$('pcsD').value)/2+120);
+ inv.position.x=rightX;inv.position.z=pcs.position.z+(+$('pcsD').value)/2+(+$('invD').value)/2+180;
+ hvac.position.x=-rightX;hvac.position.z=-usableD/2+((+$('hvacD').value)/2+120);
+ novec.position.x=-rightX;novec.position.z=hvac.position.z+(+$('hvacD').value)/2+(+$('novecD').value)/2+180;
+ [pcs,inv,hvac,novec].forEach(m=>m.userData.baseY=m.position.y);
+ root.add(label('Battery Rack (LFP Pack)',new THREE.Vector3(0,bh+ch+500,-cl/2)));
+ root.add(label('Liquid Cooling HVAC',new THREE.Vector3(hvac.position.x,bh+ch+500,hvac.position.z)));
+ root.add(label('PCS / Power Inverter',new THREE.Vector3(pcs.position.x,bh+ch+500,pcs.position.z)));
+ root.add(label('DC/AC Protection Panel',new THREE.Vector3(inv.position.x,bh+ch+500,inv.position.z)));
+ root.add(label('Fire Suppression (Novec)',new THREE.Vector3(novec.position.x,bh+ch+500,novec.position.z)));
+ camera.position.set(cl*1.1,bh+ch*2.2,cl*1.1);controls.target.set(0,bh+ch/2,0);
+ updateStats();
+}
+
+function updateStats(){
+ const ah=+$('cellAh').value,cells=+$('cellsPerPack').value,packs=+$('packsPerRack').value,rr=+$('rackRows').value,rc=+$('rackCols').value;
+ const packKwh=ah*cells*51.2/1000; // LFP pack nominal estimate
+ const mwh=packKwh*packs*rr*rc/1000;
+ const packW=+$('packWeight').value,rackW=+$('rackWeight').value;
+ const battery=packW*packs*rr*rc+rackW*rr*rc;
+ const total=battery+ +$('pcsWeight').value+ +$('invWeight').value+ +$('hvacWeight').value+ +$('novecWeight').value+ +$('shellWeight').value;
+ const front=total*0.48, rear=total*0.52;
+ const clearance=Math.max(0,+$('cl').value-(+$('packD').value+80)*+$('rackRows').value-300*(+$('rackRows').value-1)-200);
+ $('mwh').textContent=mwh.toFixed(2)+' MWh';
+ $('tw').textContent=(total/1000).toFixed(2)+' t';
+ $('axle').textContent=(front/1000).toFixed(2)+' / '+(rear/1000).toFixed(2)+' t';
+ $('clear').textContent=Math.round(clearance)+' mm';
+}
+
+function resize(){const w=$('stage').clientWidth,h=$('stage').clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);
+
+// long-press drag and double-click rotate
+const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();
+function pick(e){const r=renderer.domElement.getBoundingClientRect();pointer.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(pointer,camera);return ray.intersectObjects(movable,false)[0]?.object||null}
+renderer.domElement.addEventListener('pointerdown',e=>{downPos={x:e.clientX,y:e.clientY};selected=pick(e);if(selected){pressTimer=setTimeout(()=>{drag=selected;controls.enabled=false;toast('移動モード：'+selected.userData.name)},350)}});
+renderer.domElement.addEventListener('pointermove',e=>{if(!drag)return;const r=renderer.domElement.getBoundingClientRect();pointer.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(root.children.find(m=>m.geometry?.parameters?.width===+$('cw').value&&m.position.y===+$('baseH').value/2)||new THREE.Mesh(),false);const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-(+$('baseH').value+10));const p=new THREE.Vector3();ray.ray.intersectPlane(plane,p);if(p){const cw=+$('cw').value,cl=+$('cl').value;drag.position.x=THREE.MathUtils.clamp(p.x,-cw/2+cw*.02,cw/2-cw*.02);drag.position.z=THREE.MathUtils.clamp(p.z,-cl/2+cl*.02,cl/2-cl*.02)}});
+addEventListener('pointerup',()=>{clearTimeout(pressTimer);if(drag){drag.userData.baseY=drag.position.y;drag=null;controls.enabled=true;save()}});
+renderer.domElement.addEventListener('dblclick',e=>{const o=pick(e);if(o){o.rotation.y+=Math.PI/2;save()}});
+
+fields.forEach(f=>f.addEventListener('input',()=>{save();rebuild()}));
+$('containerType').addEventListener('change',()=>{const v=$('containerType').value;const map={10:[2991,2438,2591],12:[3600,2438,2591],20:[6058,2438,2591],40:[12192,2438,2591]};const [l,w,h]=map[v];$('cl').value=l;$('cw').value=w;$('ch').value=h;save();rebuild()});
+$('tempSave').onclick=tempSave;
+$('resetLayout').onclick=()=>{rebuild();toast('自動配置を再実行しました')};
+$('clearSaved').onclick=()=>{localStorage.removeItem(KEY);toast('保存データを削除しました')};
+$('pdfBtn').onclick=()=>{window.print()};
+$('codeBtn').onclick=()=>{const code='// v3D studio configuration\n'+exportData();download('v3d-studio-config.js',code,'text/javascript');toast('設定コードを生成しました')};
+$('dlBtn').onclick=()=>{download('v3d-studio-project.json',exportData());toast('プロジェクトをダウンロードしました')};
+$('shareBtn').onclick=async()=>{const d={};fields.forEach(f=>d[f.id]=f.value);const url=location.origin+location.pathname+'#config='+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(d)))));try{await navigator.clipboard.writeText(url);toast('共有URLをコピーしました')}catch(e){prompt('共有URL',url)}};
+load();if(location.hash.startsWith('#config=')){try{const d=JSON.parse(decodeURIComponent(escape(atob(location.hash.split('=')[1]))));fields.forEach(f=>{if(d[f.id]!==undefined)f.value=d[f.id]})}catch(e){}}
+resize();rebuild();
+(function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera)})();
+</script>
+</body>
+</html>
